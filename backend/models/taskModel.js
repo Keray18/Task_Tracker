@@ -22,6 +22,10 @@ const taskSchema = mongoose.Schema({
         type: String,
         enum: ['completed', 'inProgress', 'upComing'],
         required: true
+    },
+    dueDate: {
+        type: Date,
+        required: true
     }
 
 }, {

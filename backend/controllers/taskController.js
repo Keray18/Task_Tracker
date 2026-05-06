@@ -5,10 +5,10 @@ const Task = require('../models/taskModel')
 // Task Creation
 const taskCreation = async (req,res,next) => {
     try {
-        const { title, description, status } = req.body 
+        const { title, description, status, dueDate } = req.body 
         const allowedTypes = ['completed', 'inProgress', 'upComing']
 
-        if(!title || !status) return res.status(400).json({
+        if(!title || !status || !dueDate) return res.status(400).json({
             success: false,
             message: "Required field is empty."
         })
@@ -17,12 +17,15 @@ const taskCreation = async (req,res,next) => {
             message: "Invalid status!"
         })
 
+        const parsedDate = new Date(dueDate)
+
         const userId = req.userId 
         const task = await Task.create({
             user: userId,
             title,
             description,
-            status
+            status,
+            dueDate: parsedDate
         })
 
         res.status(201).json({
