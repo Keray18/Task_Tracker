@@ -26,5 +26,5 @@ app.use(errorHandler)
 
 
 app.listen(PORT, () => {
-    console.log(`Server started on ${PORT} successfullu.`)
+    console.log(`Server started on ${PORT} successfully.`)
 })

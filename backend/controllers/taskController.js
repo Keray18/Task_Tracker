@@ -95,11 +95,71 @@ const deleteTasks = async (req,res,next) => {
     }
 }
 
+// Edit Task
+const updateTask = async (req,res,next) => {
+    try {
+        const { id } = req.params
+        if(!id) return res.status(400).json({
+            success: false,
+            message: "No task was selected."
+        })
+        
+        const updatedTask = await Task.findByIdAndUpdate(
+            id,
+            req.body,
+            {
+                new: true,
+                runValidators: true
+            }
+        )
+
+        if(!updatedTask) return res.status(404).json({
+            success: false,
+            message: "Task not found!"
+        })
+
+        res.status(200).json({
+            success: true,
+            message: "Task was updated successfull.",
+            data: updatedTask
+        })
+
+    } catch(err) {
+        next(err)
+    }
+}
+
+// Filter task based on status
+const filterTask = async (req,res,next) => {
+    try {
+        const { status } = req.query 
+
+        let filter = {
+            user: req.userId
+        }
+
+        if(status) return filter.status = status
+
+        const tasks = await Task.find(filter).sort({ createdAt: -1 })
+
+        res.status(200).json({
+            success: true,
+            message: "Tasks are filtered based on status.",
+            count: tasks.length,
+            data: tasks
+        })
+
+    } catch(err) {
+        next(err)
+    }
+}
 
 module.exports = {
     taskCreation,
     allTask,
-    deleteTasks
+    deleteTasks,
+    updateTask,
+    filterTask
 }
 
 
