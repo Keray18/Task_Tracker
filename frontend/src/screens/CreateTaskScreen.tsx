@@ -12,6 +12,7 @@ export const CreateTaskScreen = ({ navigation }: Props) => {
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [isCompleted, setIsCompleted] = useState(false);
   const [isUpcomingEnabled, setIsUpcomingEnabled] = useState(false);
   const [dateText, setDateText] = useState("");
 
@@ -32,13 +33,15 @@ export const CreateTaskScreen = ({ navigation }: Props) => {
     // no date => inProgress
     // date > 7 days => upComing
     // otherwise => inProgress
-    const status = isUpcomingEnabled ? getTaskStatus(dateText) : "inProgress";
+    const dueDateText = dateText.trim() || new Date().toISOString();
+    const status = isCompleted ? "completed" : isUpcomingEnabled ? getTaskStatus(dueDateText) : "inProgress";
 
     try {
       await createMutation.mutateAsync({
         title: title.trim(),
         description: description.trim(),
         status,
+        dueDate: dueDateText,
       });
       navigation.goBack();
     } catch (error: any) {
@@ -66,6 +69,11 @@ export const CreateTaskScreen = ({ navigation }: Props) => {
       <TouchableOpacity onPress={() => setIsUpcomingEnabled((prev) => !prev)}>
         <View style={{ borderWidth: 1, borderColor: "#ccc", padding: 10 }}>
           <Text>{isUpcomingEnabled ? "Upcoming: ON" : "Upcoming: OFF"}</Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => setIsCompleted((prev) => !prev)}>
+        <View style={{ borderWidth: 1, borderColor: "#ccc", padding: 10 }}>
+          <Text>{isCompleted ? "Completed: ON" : "Completed: OFF"}</Text>
         </View>
       </TouchableOpacity>
 

@@ -6,12 +6,17 @@ import { LoginScreen } from "../screens/LoginScreen";
 import { SignupScreen } from "../screens/SignupScreen";
 import { HomeScreen } from "../screens/HomeScreen";
 import { CreateTaskScreen } from "../screens/CreateTaskScreen";
+import { EditTaskScreen } from "../screens/EditTaskScreen";
+import { Task } from "../api/tasks";
 
 export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
   Home: undefined;
   CreateTask: undefined;
+  EditTask: {
+    task: Task;
+  };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -33,6 +38,7 @@ export const AppNavigator = () => {
         <>
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="CreateTask" component={CreateTaskScreen} options={{ title: "Create Task" }} />
+          <Stack.Screen name="EditTask" component={EditTaskScreen} options={{ title: "Edit Task" }} />
         </>
       ) : (
         <>
