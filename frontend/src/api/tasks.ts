@@ -64,6 +64,28 @@ export const filterTasksApi = async (status: "completed" | "inProgress" | "upCom
   return response.data.data || [];
 };
 
+export const getTasksByStatusFallbackApi = async (
+  status: "completed" | "inProgress" | "upComing"
+) => {
+  // Fallback when backend filter endpoint fails.
+  // We read paginated /allTask pages and filter on client.
+  let page = 1;
+  const all: Task[] = [];
+
+  while (true) {
+    const chunk = await getTasksApi(page);
+    all.push(...chunk);
+
+    if (chunk.length < 5) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  return all.filter((task) => task.status === status);
+};
+
 export const deleteTasksApi = async (ids: string[]) => {
   const response = await apiClient.delete("/task/delete", {
     data: { ids },

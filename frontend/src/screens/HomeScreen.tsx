@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { Alert, Button, FlatList, RefreshControl, Text, View } from "react-native";
+import { Alert, Button, FlatList, RefreshControl, Text, TouchableOpacity, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StackScreenProps } from "@react-navigation/stack";
-import { deleteTasksApi, filterTasksApi, getTasksApi, Task } from "../api/tasks";
+import { deleteTasksApi, filterTasksApi, getTasksApi, getTasksByStatusFallbackApi, Task } from "../api/tasks";
 import { TaskItem } from "../components/TaskItem";
 import { useAuth } from "../context";
 import { RootStackParamList } from "../navigation/AppNavigator";
@@ -16,14 +16,24 @@ export const HomeScreen = ({ navigation }: Props) => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [showFilterOptions, setShowFilterOptions] = useState(false);
+
+  const statusLabelMap: Record<StatusFilter, string> = {
+    all: "All",
+    completed: "Completed",
+    inProgress: "In Progress",
+    upComing: "Upcoming",
+  };
 
   const { data: tasks = [], isLoading, refetch, isRefetching } = useQuery<Task[]>({
     queryKey: ["tasks", statusFilter, page],
-    queryFn: () => {
-      if (statusFilter === "all") {
-        return getTasksApi(page);
+    queryFn: async () => {
+      if (statusFilter === "all") return getTasksApi(page);
+      try {
+        return await filterTasksApi(statusFilter);
+      } catch {
+        return getTasksByStatusFallbackApi(statusFilter);
       }
-      return filterTasksApi(statusFilter);
     },
   });
 
@@ -81,16 +91,32 @@ export const HomeScreen = ({ navigation }: Props) => {
       </View>
       <View style={{ gap: 8, marginBottom: 12 }}>
         <Text>Filter by status:</Text>
-        <Button title="All" onPress={() => setStatusFilter("all")} />
-        <Button title="Completed" onPress={() => setStatusFilter("completed")} />
-        <Button title="In Progress" onPress={() => setStatusFilter("inProgress")} />
-        <Button title="Upcoming" onPress={() => setStatusFilter("upComing")} />
+        <TouchableOpacity onPress={() => setShowFilterOptions((prev) => !prev)}>
+          <View style={{ borderWidth: 1, borderColor: "#ccc", padding: 10 }}>
+            <Text>{statusLabelMap[statusFilter]} (tap to change)</Text>
+          </View>
+        </TouchableOpacity>
+        {showFilterOptions ? (
+          <View style={{ borderWidth: 1, borderColor: "#ccc", padding: 8, gap: 6 }}>
+            {(Object.keys(statusLabelMap) as StatusFilter[]).map((item) => (
+              <Button
+                key={item}
+                title={statusLabelMap[item]}
+                onPress={() => {
+                  setStatusFilter(item);
+                  setPage(1);
+                  setShowFilterOptions(false);
+                }}
+              />
+            ))}
+          </View>
+        ) : null}
       </View>
 
       {isLoading ? (
         <Text>Loading tasks...</Text>
       ) : taskRows.length === 0 ? (
-        <Text>No tasks yet. Create your first task.</Text>
+        <Text>{statusFilter === "all" ? "No tasks yet. Create your first task." : "Nothing here."}</Text>
       ) : (
         <FlatList
           data={taskRows}

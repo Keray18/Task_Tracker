@@ -50,18 +50,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     const data = await loginApi(email, password);
+    if (!data?.token) {
+      throw new Error("Token missing in login response");
+    }
     setToken(data.token);
-    setUser(data.user);
-    await AsyncStorage.setItem(TOKEN_KEY, data.token);
-    await AsyncStorage.setItem(USER_KEY, JSON.stringify(data.user));
+    setUser(data.user || null);
+    try {
+      await AsyncStorage.setItem(TOKEN_KEY, data.token);
+      if (data.user) {
+        await AsyncStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      } else {
+        await AsyncStorage.removeItem(USER_KEY);
+      }
+    } catch {
+      // Do not block login if local storage fails.
+    }
   };
 
   const signup = async (name: string, email: string, password: string) => {
     const data = await signupApi(name, email, password);
+    if (!data?.token) {
+      throw new Error("Token missing in signup response");
+    }
     setToken(data.token);
-    setUser(data.user);
-    await AsyncStorage.setItem(TOKEN_KEY, data.token);
-    await AsyncStorage.setItem(USER_KEY, JSON.stringify(data.user));
+    setUser(data.user || null);
+    try {
+      await AsyncStorage.setItem(TOKEN_KEY, data.token);
+      if (data.user) {
+        await AsyncStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      } else {
+        await AsyncStorage.removeItem(USER_KEY);
+      }
+    } catch {
+      // Do not block signup if local storage fails.
+    }
   };
 
   const logout = async () => {

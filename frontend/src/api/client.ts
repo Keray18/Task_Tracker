@@ -14,6 +14,7 @@ export const setAuthTokenProvider = (tokenGetter: () => string | null) => {
 
 export const apiClient = create({
   baseURL: BASE_URL,
+  timeout: 8000,
 });
 
 apiClient.interceptors.request.use((config) => {
